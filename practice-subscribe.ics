@@ -1,0 +1,488 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Guitar//Practice//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Guitar Practice
+X-WR-TIMEZONE:America/New_York
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+X-PUBLISHED-TTL:PT1H
+BEGIN:VTIMEZONE
+TZID:America/New_York
+X-LIC-LOCATION:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:20070311T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:20071104T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:b21955e8-645b-42a0-8266-2b8ba56edb88@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261003T070000
+DTEND;TZID=America/New_York:20261003T081500
+SUMMARY:Guitar: Cover Me Up - key / chords / targets
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct3-cover-me-up
+END:VEVENT
+BEGIN:VEVENT
+UID:884cee87-1353-4e0c-a6e3-4d1409089dba@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261010T070000
+DTEND;TZID=America/New_York:20261010T081500
+SUMMARY:Guitar: Deep River Blues - fingerstyle + chord map
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct10-deep-river
+END:VEVENT
+BEGIN:VEVENT
+UID:8153468f-5070-4564-878e-e39f4b60ba79@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261013T180000
+DTEND;TZID=America/New_York:20261013T183000
+SUMMARY:Guitar: Cover Me Up - triad voice-leading
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct6-cover-triads
+END:VEVENT
+BEGIN:VEVENT
+UID:6730771a-f7a0-46a7-ac05-c603ccb8fdb4@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261015T180000
+DTEND;TZID=America/New_York:20261015T183000
+SUMMARY:Guitar: Interstate Love Song - key and functions
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct8-interstate
+END:VEVENT
+BEGIN:VEVENT
+UID:b08329be-94a7-4b51-973e-b3c20ba04bfa@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261017T070000
+DTEND;TZID=America/New_York:20261017T081500
+SUMMARY:Guitar: Yellow Ledbetter + Soul to Squeeze peek
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct17-yellow-soul
+END:VEVENT
+BEGIN:VEVENT
+UID:8a585224-9a6a-40e3-ba3d-2e9d6d39ee4f@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261020T180000
+DTEND;TZID=America/New_York:20261020T183000
+SUMMARY:Guitar: How to play like Gilmour - phrasing lab
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct13-gilmour-howto
+END:VEVENT
+BEGIN:VEVENT
+UID:453cbc07-b13d-41bd-9663-48ff1ca8032d@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261022T180000
+DTEND;TZID=America/New_York:20261022T183000
+SUMMARY:Guitar: Five Blues Boxes + Hesitation Blues
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct15-blues-boxes
+END:VEVENT
+BEGIN:VEVENT
+UID:5b088c75-a0b3-487e-8af5-06d16fce08e9@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261024T070000
+DTEND;TZID=America/New_York:20261024T081500
+SUMMARY:Guitar: Shine On You Crazy Diamond - solo map Pt1
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct24-shine-on
+END:VEVENT
+BEGIN:VEVENT
+UID:f8eaeeb4-867c-485b-bddb-bbac986bfab4@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261027T180000
+DTEND;TZID=America/New_York:20261027T183000
+SUMMARY:Guitar: Interstate - chords to solo targets
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct20-interstate
+END:VEVENT
+BEGIN:VEVENT
+UID:51a37513-0c86-45e5-a5a2-e4f78c784bc8@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261029T180000
+DTEND;TZID=America/New_York:20261029T183000
+SUMMARY:Guitar: Sequencing Pentatonic Scales
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct22-seq-pent
+END:VEVENT
+BEGIN:VEVENT
+UID:f5f57f85-657f-48f7-8ae8-a6b364d2bc8e@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261031T070000
+DTEND;TZID=America/New_York:20261031T081500
+SUMMARY:Guitar: Brothers in Arms - harmony + swells
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct31-brothers
+END:VEVENT
+BEGIN:VEVENT
+UID:789bd7ac-878e-438b-ad78-5953e30318f7@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261103T180000
+DTEND;TZID=America/New_York:20261103T183000
+SUMMARY:Guitar: Shine On - Gilmour tones continue
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct27-shine-gilmour
+END:VEVENT
+BEGIN:VEVENT
+UID:829bfe6a-4446-41fd-9a9f-3883b6364375@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261105T180000
+DTEND;TZID=America/New_York:20261105T183000
+SUMMARY:Guitar: Scales Every Player Should Know
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/oct29-scales-every
+END:VEVENT
+BEGIN:VEVENT
+UID:3288fc2e-9ea7-4779-ac13-fedc5c729cde@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261107T070000
+DTEND;TZID=America/New_York:20261107T081500
+SUMMARY:Guitar: Soul to Squeeze - rhythm + chorus deep
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov7-soul-full
+END:VEVENT
+BEGIN:VEVENT
+UID:c6f7a2cd-fa63-40fd-9f7d-07f742c6b7eb@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261110T180000
+DTEND;TZID=America/New_York:20261110T183000
+SUMMARY:Guitar: Under the Bridge - intro/verse map
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov3-under-bridge
+END:VEVENT
+BEGIN:VEVENT
+UID:2412192b-a592-4b99-bbd3-46b791862e32@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261112T180000
+DTEND;TZID=America/New_York:20261112T183000
+SUMMARY:Guitar: Six Ways - Musical Alphabet / fretboard
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov5-alphabet
+END:VEVENT
+BEGIN:VEVENT
+UID:38ef970f-2064-422c-a8f4-ed39f706a0c5@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261114T070000
+DTEND;TZID=America/New_York:20261114T081500
+SUMMARY:Guitar: Hallelujah (Buckley) - progression + arpeggios
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov14-hallelujah
+END:VEVENT
+BEGIN:VEVENT
+UID:f8ef2ed6-41dd-433f-8704-4c1833b331dd@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261117T180000
+DTEND;TZID=America/New_York:20261117T183000
+SUMMARY:Guitar: Sue Foley blues licks - melodic soloing
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov10-sue-foley
+END:VEVENT
+BEGIN:VEVENT
+UID:f89f78c4-8bad-49a8-8450-01cbf75b2dea@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261119T180000
+DTEND;TZID=America/New_York:20261119T183000
+SUMMARY:Guitar: Play over Chord Changes - targeting lab
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov12-chord-changes
+END:VEVENT
+BEGIN:VEVENT
+UID:51254712-9b42-4cff-9a9a-cecf140de831@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261121T070000
+DTEND;TZID=America/New_York:20261121T081500
+SUMMARY:Guitar: Something in the Orange - acoustic groove
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov21-orange
+END:VEVENT
+BEGIN:VEVENT
+UID:f2b4820f-7c2e-44db-92f4-ba43a857a8f1@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261124T180000
+DTEND;TZID=America/New_York:20261124T183000
+SUMMARY:Guitar: Wicked Game - Bm groove + picking
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov17-wicked
+END:VEVENT
+BEGIN:VEVENT
+UID:cead75ae-fba0-4b6b-80a9-6dd7aa01ce9d@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261126T180000
+DTEND;TZID=America/New_York:20261126T183000
+SUMMARY:Guitar: Clean Tone lab + Under the Bridge review
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov19-clean-tone
+END:VEVENT
+BEGIN:VEVENT
+UID:90224cdd-43e8-4f8c-99d0-9ed491f16abe@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261128T070000
+DTEND;TZID=America/New_York:20261128T081500
+SUMMARY:Guitar: Song for George - stretch fingerstyle
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov28-george
+END:VEVENT
+BEGIN:VEVENT
+UID:c50cf8a4-ae41-4199-8431-5736c51ee5a9@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261201T180000
+DTEND;TZID=America/New_York:20261201T183000
+SUMMARY:Guitar: Desperado - acoustic ballad
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov24-desperado
+END:VEVENT
+BEGIN:VEVENT
+UID:1c6b8aa7-a3cb-458a-8fe6-4b31b8f2b641@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261203T180000
+DTEND;TZID=America/New_York:20261203T183000
+SUMMARY:Guitar: Thanksgiving light - record / review
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/nov26-thanks-review
+END:VEVENT
+BEGIN:VEVENT
+UID:523fdc93-d5b2-4118-8600-0d7330b89b01@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261205T070000
+DTEND;TZID=America/New_York:20261205T081500
+SUMMARY:Guitar: Amazing Grace on slide - Open D
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec5-amazing-slide
+END:VEVENT
+BEGIN:VEVENT
+UID:570d09d8-7091-4d1a-b93d-861c4bb0cf72@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261208T180000
+DTEND;TZID=America/New_York:20261208T183000
+SUMMARY:Guitar: Imagine - chord-tone melody
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec1-imagine
+END:VEVENT
+BEGIN:VEVENT
+UID:bc74d3e9-2e29-4301-812b-988293206d2a@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261210T180000
+DTEND;TZID=America/New_York:20261210T183000
+SUMMARY:Guitar: Vincent - fingerstyle start
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec3-vincent
+END:VEVENT
+BEGIN:VEVENT
+UID:ee0618df-3d64-465e-b4f5-223a82fd3638@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261212T070000
+DTEND;TZID=America/New_York:20261212T081500
+SUMMARY:Guitar: Reeling in the Years - solo section
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec12-reeling
+END:VEVENT
+BEGIN:VEVENT
+UID:c7401052-bd41-400d-b0e2-4d4ef823b477@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261215T180000
+DTEND;TZID=America/New_York:20261215T183000
+SUMMARY:Guitar: Alison (Elvis Costello) - rhythm/groove
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec8-alison
+END:VEVENT
+BEGIN:VEVENT
+UID:8e187607-e17a-4f25-ad60-d09bb5cda0a0@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261217T180000
+DTEND;TZID=America/New_York:20261217T183000
+SUMMARY:Guitar: Goodbye Blue Sky - arpeggios
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec10-goodbye-blue
+END:VEVENT
+BEGIN:VEVENT
+UID:7d19e9d1-c469-45d2-b3f0-9d5d780a87da@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261219T070000
+DTEND;TZID=America/New_York:20261219T081500
+SUMMARY:Guitar: Buckets of Rain - fingerpicking
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec19-buckets
+END:VEVENT
+BEGIN:VEVENT
+UID:b8b2e943-1fbe-4a5d-be09-d0fd3ee0073d@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261222T180000
+DTEND;TZID=America/New_York:20261222T183000
+SUMMARY:Guitar: In the Middle (Jimmy Eat World)
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec15-middle
+END:VEVENT
+BEGIN:VEVENT
+UID:2fd5c6bb-67c1-4cec-a453-bccc961bbc8c@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261224T180000
+DTEND;TZID=America/New_York:20261224T183000
+SUMMARY:Guitar: Let Her Go - fingerstyle
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec17-let-her-go
+END:VEVENT
+BEGIN:VEVENT
+UID:c2a9c463-d37b-421c-a121-2ec3cbd30cc8@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261226T070000
+DTEND;TZID=America/New_York:20261226T081500
+SUMMARY:Guitar: Yousician tryout + favorites review
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec26-yousician
+END:VEVENT
+BEGIN:VEVENT
+UID:f875d3bf-63f4-4cd8-b2e6-bb7b55bced2f@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261229T180000
+DTEND;TZID=America/New_York:20261229T183000
+SUMMARY:Guitar: Isbell lane - Cities / Only Children map
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec22-isbell-lane
+END:VEVENT
+BEGIN:VEVENT
+UID:b79d91bd-10c3-4c60-a6cd-72dbb5b1f843@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20261231T180000
+DTEND;TZID=America/New_York:20261231T183000
+SUMMARY:Guitar: Holiday light - Finish and Record 3 Songs
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec24-holiday
+END:VEVENT
+BEGIN:VEVENT
+UID:603ff8f5-fb43-4413-b363-f82009684950@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270102T070000
+DTEND;TZID=America/New_York:20270102T081500
+SUMMARY:Guitar: Desperados Under the Eaves - form study
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan2-desperados
+END:VEVENT
+BEGIN:VEVENT
+UID:75b5c806-66c4-44fc-84fd-798ff480ca54@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270105T180000
+DTEND;TZID=America/New_York:20270105T183000
+SUMMARY:Guitar: Acoustic pack - Frail / Delilah / Hippie Radio
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec29-acoustic-pack
+END:VEVENT
+BEGIN:VEVENT
+UID:7a3724c6-bfd0-4bd4-a9ce-4f4f3b80c66e@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270107T180000
+DTEND;TZID=America/New_York:20270107T183000
+SUMMARY:Guitar: Year-end review - plan January
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/dec31-year-review
+END:VEVENT
+BEGIN:VEVENT
+UID:94d01bee-cea3-4b60-97bd-c950e68a2965@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270109T070000
+DTEND;TZID=America/New_York:20270109T081500
+SUMMARY:Guitar: Write a song about James - composition lab
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan9-write-james
+END:VEVENT
+BEGIN:VEVENT
+UID:c67066c4-6809-4792-bd97-ff62544098b6@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270112T180000
+DTEND;TZID=America/New_York:20270112T183000
+SUMMARY:Guitar: In the Blood / Mayer lane - groove
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan5-mayer-lane
+END:VEVENT
+BEGIN:VEVENT
+UID:b7094d38-8b41-4612-b090-c23a07ea312d@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270114T180000
+DTEND;TZID=America/New_York:20270114T183000
+SUMMARY:Guitar: GPS Bundle / theory consolidation
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan7-gps-theory
+END:VEVENT
+BEGIN:VEVENT
+UID:c6150bc1-98d0-4201-a82b-74117123cfb4@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270116T070000
+DTEND;TZID=America/New_York:20270116T081500
+SUMMARY:Guitar: Capstone - Finish and Record 3 Songs
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan16-capstone
+END:VEVENT
+BEGIN:VEVENT
+UID:f5cb3555-0b13-4a66-8b7e-4af38b214a5e@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270119T180000
+DTEND;TZID=America/New_York:20270119T183000
+SUMMARY:Guitar: Only Children / Isbell deep - chorus
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan12-only-children
+END:VEVENT
+BEGIN:VEVENT
+UID:ca96c837-62a5-4fef-a9d5-a5d093374bfa@guitar.kevin
+DTSTAMP:20261004T121453Z
+SEQUENCE:10
+DTSTART;TZID=America/New_York:20270121T180000
+DTEND;TZID=America/New_York:20270121T183000
+SUMMARY:Guitar: 25 acoustic songs article - pick next arc
+DESCRIPTION:Lesson plan: open the event URL for steps and links.
+URL:https://kcoppins-creator.github.io/guitar-lessons/p/jan14-acoustic
+END:VEVENT
+END:VCALENDAR
