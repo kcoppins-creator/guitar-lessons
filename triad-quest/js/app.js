@@ -8,7 +8,8 @@
   /* ---------- progress (localStorage is optional; every access is guarded) ---------- */
   var STORE = "triad-quest-app-v1";
   var DEFAULT_SETTINGS = { sound: true, volume: 0.8, names: false, metronome: 0, orientation: "auto" };
-  function fresh() { return { stars: {}, points: 0, bestStreak: 0, speed: {}, practice: false, keyId: "G", last: null, settings: Object.assign({}, DEFAULT_SETTINGS) }; }
+  function defaultJam() { return { track: "kevin", set: 2, mode: null, style: null, bpm: null, key: null, countIn: true, loop: true, ovTriad: true, ovNext: true, ovPent: null, names: true, boxShift: 0, mix: { drums: 0.9, bass: 0.72, gtr: 0.72, mDrums: false, mBass: false, mGtr: false } }; }
+  function fresh() { return { stars: {}, points: 0, bestStreak: 0, speed: {}, practice: false, keyId: "G", last: null, settings: Object.assign({}, DEFAULT_SETTINGS), jam: defaultJam() }; }
   function getStore() {
     try { var ls = window.localStorage; if (!ls) return null; ls.setItem(STORE + "-probe", "1"); ls.removeItem(STORE + "-probe"); return ls; }
     catch (e) { return null; }
@@ -28,6 +29,7 @@
       if (typeof o.keyId === "string" && TQ.KEYS.some(function (k) { return k.id === o.keyId; })) p.keyId = o.keyId;
       if (o.last && typeof o.last.part === "number") p.last = o.last;
       if (o.settings && typeof o.settings === "object") p.settings = Object.assign({}, DEFAULT_SETTINGS, o.settings);
+      if (o.jam && typeof o.jam === "object") { var dj = defaultJam(); p.jam = Object.assign(dj, o.jam); p.jam.mix = Object.assign(defaultJam().mix, o.jam.mix || {}); }
     } catch (e) { /* corrupt data: start fresh */ }
     return p;
   }
@@ -75,6 +77,7 @@
     if (board) { board.destroy(); board = null; }
     if (tick) { clearInterval(tick); tick = null; }
     A.metroStop();
+    if (window.TQJam && screen === "jam") { window.TQJam.stop(); jam.playing = false; }
   }
   function go(name) {
     teardown();
@@ -86,6 +89,7 @@
     else if (name === "learn") renderLearn();
     else if (name === "result") renderResult();
     else if (name === "play") renderPlay();
+    else if (name === "jam") renderJam();
     app.scrollTop = 0;
   }
 
@@ -103,6 +107,7 @@
       '<button class="big primary" data-act="continue"' + (nu ? "" : " disabled") + '><span class="bt">' + (P.points > 0 ? "Continue" : "Start") + '</span><span class="bs">' + esc(contLabel) + "</span></button>" +
       '<button class="big" data-act="levels"><span class="bt">Levels</span><span class="bs">4 parts · 16 levels · ' + esc(kd.label) + "</span></button>" +
       '<button class="big" data-act="speed"' + (speedOpen() ? "" : " disabled") + '><span class="bt">Speed Round</span><span class="bs">' + (speedOpen() ? "60 seconds · as many shapes as you can" : "Unlocks after Part 1") + "</span></button>" +
+      '<button class="big jambtn" data-act="jam"><span class="bt">🎸 Jam</span><span class="bs">Play along with a band · Kevin\'s E jam + ' + (jamOpenCount() - 1) + " curriculum tracks open</span></button>" +
       '<div class="row2"><button class="big small" data-act="learn"><span class="bt">How it works</span></button>' +
       '<button class="big small" data-act="settings"><span class="bt">Settings</span></button></div>' +
       "</div>" +
@@ -408,6 +413,8 @@
         '<p class="muted small">★ finish · ★ 80%+ right first time · ★ beat ' + s.par + "s per shape" + (s.stars > s.prevStars && s.prevStars > 0 ? " · <b>New best!</b>" : "") + "</p>" +
         '<div class="ractions">' + (nextOpen ? '<button class="btn check" data-act="start" data-part="' + nl.part + '" data-set="' + nl.set + '">Next level ›</button>' : "") +
         '<button class="btn" data-act="start" data-part="' + s.part + '" data-set="' + s.set + '">Play again</button><button class="btn" data-act="levels">Levels</button><button class="btn" data-act="home">Home</button></div>';
+      var lvN = TQ.LEVELS.findIndex(function (l) { return l.part === s.part && l.set === s.set; }) + 1, jt = J.track(PART_TRACK[s.part]);
+      html += '<div class="apply"><div><b>Congrats on Level ' + lvN + ' — now let\'s apply it.</b><span>Jam ' + esc(jt.title) + " on " + TQ.SET_SHORT[s.set] + ' with a band, with your shapes lit up as the chords change.</span></div><button class="btn check" data-act="jamstart" data-track="' + jt.id + '" data-set="' + s.set + '">🎸 Apply it</button></div>';
       if (!nl && allG()) html += '<p class="infonote">All 16 levels cleared in G. The key picker on the Levels screen now has all 12 keys.</p>';
     } else {
       var nb = s.score > s.best;
@@ -423,6 +430,196 @@
     window.TQConfetti(big >= 3 ? 220 : big === 2 ? 140 : 80);
   }
 
+
+  /* ---------- Jam: play-along backing tracks ---------- */
+  var J = window.TQJamData, Jam = window.TQJam;
+  var jam = { sched: null, cur: 0, playing: false, counting: 0, dots: [], mixer: false, loadMsg: "" };
+  var PART_TRACK = { 1: "p1", 2: "p2", 3: "p3a", 4: "p4a" };
+  function jamTrackOpen(t) {
+    if (t.part === 0 || freeplay()) return true;
+    return [0, 1, 2, 3].some(function (s) { return starsOf("G", "p" + t.part + "s" + s) > 0; });
+  }
+  function jamSetOpen(t, s) { return t.part === 0 || freeplay() || starsOf("G", "p" + t.part + "s" + s) > 0; }
+  function jamOpenCount() { return J.TRACKS.filter(jamTrackOpen).length; }
+  function jamKeyId(t) {
+    if (keyPickerOpen() && P.jam.key) return P.jam.key;
+    return t.key || (P.keyId !== "G" ? P.keyId : "G");
+  }
+  function jamMode(t) { return P.jam.mode === null || P.jam.mode === undefined ? t.shape : P.jam.mode; }
+  function jamStyle(t) { return P.jam.style || t.style; }
+  function jamBpm(t) { return P.jam.bpm || t.bpm; }
+  function jamPent(t) { return P.jam.ovPent === null || P.jam.ovPent === undefined ? !!t.pent : P.jam.ovPent; }
+  function jamBuild() {
+    var t = J.track(P.jam.track);
+    if (!jamTrackOpen(t)) { t = J.TRACKS[0]; P.jam.track = t.id; }
+    if (!jamSetOpen(t, P.jam.set)) P.jam.set = [0, 1, 2, 3].filter(function (s) { return jamSetOpen(t, s); }).pop();
+    jam.sched = J.build(t.id, J.keyIndex(jamKeyId(t)), P.jam.set, jamMode(t));
+    return jam.sched;
+  }
+  function jamOpts() { var t = jam.sched.track; return { sched: jam.sched, style: jamStyle(t), bpm: jamBpm(t), countIn: P.jam.countIn, loop: P.jam.loop }; }
+  function openJam(trackId, set) {
+    if (trackId) { if (P.jam.track !== trackId) { P.jam.mode = null; P.jam.style = null; P.jam.bpm = null; P.jam.ovPent = null; P.jam.boxShift = 0; } P.jam.track = trackId; }
+    if (set !== undefined && set !== null) P.jam.set = set;
+    save(); go("jam");
+  }
+  function sel(id, val, opts) {
+    return '<select id="' + id + '" class="jsel">' + opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? " selected" : "") + (o[2] ? " disabled" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>";
+  }
+  function tog(id, on, label) { return '<button class="tog' + (on ? " on" : "") + '" data-act="jamTog" data-id="' + id + '" aria-pressed="' + on + '">' + label + "</button>"; }
+
+  function renderJam() {
+    var s = jamBuild(), t = s.track, part = t.part ? "Part " + t.part + " · " + TQ.PARTS[t.part - 1].title : "play along";
+    var trackOpts = J.TRACKS.map(function (x) { return [x.id, (x.part ? "Part " + x.part + " · " : "★ ") + x.title + (jamTrackOpen(x) ? "" : " (locked)"), !jamTrackOpen(x)]; });
+    var keyOpts = TQ.KEYS.map(function (k) { return [k.id, k.label, !keyPickerOpen() && k.id !== jamKeyId(t)]; });
+    app.innerHTML =
+      '<div class="jam">' +
+      '<header class="topbar"><button class="icon-btn" data-act="home" aria-label="Back to home">‹</button>' +
+      '<div class="tb-title"><div class="tb-kicker">Jam · ' + esc(part) + "</div>" + sel("jTrack", t.id, trackOpts) + "</div>" +
+      '<div class="jopts"><label class="jlab">Key ' + sel("jKey", jamKeyId(t), keyOpts) + "</label>" +
+      '<div class="seg jset">' + [0, 1, 2, 3].map(function (i) { var op = jamSetOpen(t, i); return '<button data-act="jamSet" data-v="' + i + '" class="' + (i === P.jam.set ? "on" : "") + '"' + (op ? "" : " disabled") + ">" + TQ.SET_SHORT[i] + "</button>"; }).join("") + "</div></div></header>" +
+      '<section class="jamhead"><div class="jnow" id="jNow"></div><div class="jlane" id="jLane"></div><div class="jbeats" id="jBeats"><i></i><i></i><i></i><i></i></div></section>' +
+      '<p class="jtip" id="jTip"></p>' +
+      '<section class="board-area" id="boardArea"></section>' +
+      '<section class="panel transport" id="transport"></section>' +
+      '<div class="mixer" id="mixer" hidden></div></div>';
+    board = new Board(document.getElementById("boardArea"), { onTap: jamTap, getOrientation: function () { return P.settings.orientation; } });
+    board.setActive(s.set);
+    jam.cur = 0; jam.counting = 0;
+    document.getElementById("jTrack").addEventListener("change", function (e) { jamStop(); openJam(e.target.value, null); });
+    document.getElementById("jKey").addEventListener("change", function (e) { P.jam.key = e.target.value; save(); jamRebuild(); });
+    renderTransport(); jamRefresh(); renderMixer();
+    if (!Jam.ready) {
+      jam.loadMsg = "Loading sounds…"; renderTransport();
+      Jam.load(function (d, n) { jam.loadMsg = "Loading sounds " + d + "/" + n; var b = document.getElementById("jPlay"); if (b && screen === "jam") b.querySelector("small").textContent = jam.loadMsg; })
+        .then(function () { jam.loadMsg = ""; if (Jam.failed.length) toast(Jam.failed.length + " sounds didn't load; using what's there"); if (screen === "jam") renderTransport(); })
+        .catch(function () { jam.loadMsg = "Audio isn't available in this browser"; if (screen === "jam") renderTransport(); });
+    }
+  }
+  function renderTransport() {
+    var el = document.getElementById("transport"); if (!el) return;
+    var t = jam.sched.track, bpm = jamBpm(t), st = jamStyle(t), mode = jamMode(t), ready = Jam.ready;
+    el.classList.toggle("open", !!jam.more);
+    el.innerHTML =
+      '<div class="trow">' +
+      '<button class="btn check jplay' + (jam.playing ? " on" : "") + '" id="jPlay" data-act="jamPlay"' + (ready ? "" : " disabled") + ">" + (jam.playing ? "■ Stop" : "▶ Play") + "<small>" + esc(jam.loadMsg || (jam.playing ? (P.jam.loop ? "looping" : "once through") : "")) + "</small></button>" +
+      '<div class="tempo"><button class="icon-btn sm" data-act="jamBpm" data-v="-2" aria-label="Slower">−</button><input id="jTempo" type="range" min="70" max="120" step="1" value="' + bpm + '" aria-label="Tempo"><button class="icon-btn sm" data-act="jamBpm" data-v="2" aria-label="Faster">+</button><b id="jBpmVal">' + bpm + "</b><span class='muted small'>bpm</span></div>" +
+      tog("countIn", P.jam.countIn, "Count-in") + tog("loop", P.jam.loop, "Loop") +
+      '<button class="tog" data-act="jamMixer" aria-expanded="' + jam.mixer + '">🎚 Mixer</button><button class="tog onlyphone' + (jam.more ? " on" : "") + '" data-act="jamMore">Options</button></div>' +
+      '<div class="trow more"><div class="seg">' + J.STYLES.map(function (x) { return '<button data-act="jamStyle" data-v="' + x.id + '" class="' + (x.id === st ? "on" : "") + '">' + x.label + "</button>"; }).join("") + "</div>" +
+      '<div class="seg">' + J.SHAPE_MODES.map(function (m) { return '<button data-act="jamMode" data-v="' + m[0] + '" class="' + (String(m[0]) === String(mode) ? "on" : "") + '">' + m[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="ovs">' + tog("ovTriad", P.jam.ovTriad, "Triad") + tog("ovNext", P.jam.ovNext, "Next") + tog("ovPent", jamPent(t), "Pentatonic") +
+      (jamPent(t) ? '<button class="tog" data-act="jamBox" aria-label="Move the pentatonic box">Box ›</button>' : "") + tog("names", P.jam.names, "Names") + "</div></div>";
+    var tr = document.getElementById("jTempo");
+    tr.addEventListener("input", function () { setBpm(+tr.value, true); });
+    tr.addEventListener("change", function () { setBpm(+tr.value); });
+  }
+  function setBpm(v, live) {
+    v = Math.max(70, Math.min(120, Math.round(v)));
+    P.jam.bpm = v; var b = document.getElementById("jBpmVal"); if (b) b.textContent = v;
+    var tr = document.getElementById("jTempo"); if (tr && +tr.value !== v) tr.value = v;
+    if (jam.playing) Jam.update({ bpm: v });
+    if (!live) save();
+  }
+  function renderMixer() {
+    var el = document.getElementById("mixer"); if (!el) return;
+    el.hidden = !jam.mixer;
+    var tp = document.getElementById("transport");
+    if (tp) el.style.bottom = (tp.offsetHeight + 10) + "px";
+    var m = P.jam.mix;
+    function row(k, label) {
+      var mk = "m" + k[0].toUpperCase() + k.slice(1);
+      return '<div class="mrow"><b>' + label + '</b><input type="range" min="0" max="1" step="0.02" value="' + m[k] + '" data-mix="' + k + '" aria-label="' + label + ' volume"><button class="tog' + (m[mk] ? " on danger" : "") + '" data-act="jamMute" data-id="' + k + '">' + (m[mk] ? "Muted" : "Mute") + "</button></div>";
+    }
+    el.innerHTML = '<div class="mhead"><b>Mixer</b><button class="icon-btn sm" data-act="jamMixer" aria-label="Close mixer">×</button></div>' + row("drums", "Drums") + row("bass", "Bass") + row("gtr", "Chords");
+    el.querySelectorAll("input[data-mix]").forEach(function (inp) {
+      inp.addEventListener("input", function () { var k = inp.getAttribute("data-mix"); P.jam.mix[k] = +inp.value; Jam.set(k, +inp.value); });
+      inp.addEventListener("change", save);
+    });
+  }
+  function applyMix() {
+    var m = P.jam.mix;
+    ["drums", "bass", "gtr"].forEach(function (k) { Jam.set(k, m[k]); Jam.set("m" + k[0].toUpperCase() + k.slice(1), !!m["m" + k[0].toUpperCase() + k.slice(1)]); });
+    Jam.set("out", P.settings.sound ? 0.9 * Math.max(0.05, P.settings.volume) / 0.8 : 0);
+  }
+  function jamRebuild() {
+    var prevCur = jam.cur;
+    jamBuild();
+    if (jam.playing) Jam.update(jamOpts());
+    jam.cur = Math.min(prevCur, jam.sched.items.length - 1);
+    if (screen === "jam") { board.setActive(jam.sched.set); renderTransport(); jamRefresh(); }
+  }
+  function jamPlay() {
+    if (jam.playing) { jamStop(); return; }
+    if (!Jam.ready) return;
+    A.unlock(); applyMix();
+    if (!P.settings.sound) toast("Sound is off in Settings");
+    jam.cur = 0; jam.counting = P.jam.countIn ? 4 : 0;
+    jam.playing = Jam.play(jamOpts());
+    renderTransport(); jamRefresh();
+  }
+  function jamStop() {
+    Jam.stop(); jam.playing = false; jam.counting = 0;
+    if (screen === "jam") { renderTransport(); jamRefresh(); }
+  }
+  Jam.on("ui", function (ev) { if (screen !== "jam") return; jam.counting = 0; jam.cur = ev.i; jamRefresh(true); });
+  Jam.on("beat", function (ev) {
+    if (screen !== "jam") return;
+    var bs = document.querySelectorAll("#jBeats i");
+    bs.forEach(function (b, i) { b.classList.toggle("on", i === ev.n); });
+    var it = jam.sched.items[jam.cur], left = it.startBeat + it.beats - (Math.floor(it.startBeat / 4) * 4 + ev.n);
+    var nx = document.getElementById("jNext"); if (nx) nx.classList.toggle("soon", left <= 1 && jam.sched.items.length > 1);
+  });
+  Jam.on("count", function (ev) { if (screen !== "jam") return; jam.counting = ev.n; jamRefresh(); });
+  Jam.on("end", function () { jam.playing = false; jam.counting = 0; if (screen === "jam") { renderTransport(); jamRefresh(); } });
+
+  function roleCls(r) { return r === "root" ? "jr" : r === "3rd" ? "j3" : r === "4th" ? "j4" : "j5"; }
+  function jamDots() {
+    var s = jam.sched, it = s.items[jam.cur], nx = s.items[(jam.cur + 1) % s.items.length], flat = s.key.flat, lab = P.jam.names, dots = [], taken = {};
+    if (P.jam.ovTriad) it.placement.frets.forEach(function (f, i) {
+      var str = s.set[i], r = it.chord.roles[it.placement.roles[i]];
+      taken[str + "-" + f] = true;
+      dots.push({ key: "t" + str + "-" + f, s: str, f: f, kind: "jt " + roleCls(r), label: lab ? TQ.nm(it.chord.tones[it.placement.roles[i]]) : "", role: shortRole(r) });
+    });
+    if (P.jam.ovNext && nx !== it) nx.placement.frets.forEach(function (f, i) {
+      var str = s.set[i]; if (taken[str + "-" + f]) return;
+      dots.push({ key: "n" + str + "-" + f, s: str, f: f, kind: "jn", label: lab ? TQ.nm(nx.chord.tones[nx.placement.roles[i]]) : "", role: "" });
+    });
+    if (jamPent(s.track)) {
+      var box = J.pentBox(s, P.jam.boxShift || 0), pcs = J.pentPcs(s.keyIdx), seen = {};
+      var tonePc = it.chord.tones.map(TQ.pcOf);
+      box.notes.forEach(function (n) {
+        var k = n.s + "-" + n.f; seen[k] = true; if (taken[k]) return;
+        var ti = tonePc.indexOf(TQ.mod(TQ.OPEN[n.s] + n.f, 12));
+        if (ti >= 0) dots.push({ key: "p" + k, s: n.s, f: n.f, kind: "jp tgt " + roleCls(it.chord.roles[ti]), label: lab ? TQ.nm(it.chord.tones[ti]) : "", role: shortRole(it.chord.roles[ti]) });
+        else dots.push({ key: "p" + k, s: n.s, f: n.f, kind: "jp", label: lab ? TQ.noteName(n.s, n.f, null, flat) : "", role: "" });
+      });
+      // chord tones that sit inside the box's frets but outside the scale (e.g. A over the A chord in E pentatonic)
+      for (var str = 0; str < 6; str++) for (var f = box.lo; f <= box.hi; f++) {
+        var k2 = str + "-" + f; if (seen[k2] || taken[k2]) continue;
+        var ti2 = tonePc.indexOf(TQ.mod(TQ.OPEN[str] + f, 12));
+        if (ti2 >= 0 && pcs.indexOf(tonePc[ti2]) < 0) dots.push({ key: "p" + k2, s: str, f: f, kind: "jp tgt out " + roleCls(it.chord.roles[ti2]), label: lab ? TQ.nm(it.chord.tones[ti2]) : "", role: shortRole(it.chord.roles[ti2]) });
+      }
+    }
+    return dots;
+  }
+  function jamRefresh(changed) {
+    if (screen !== "jam" || !jam.sched) return;
+    var s = jam.sched, it = s.items[jam.cur], nx = s.items[(jam.cur + 1) % s.items.length], t = s.track;
+    var now = document.getElementById("jNow");
+    now.innerHTML = jam.counting
+      ? '<div class="jcount">' + jam.counting + '</div><div class="jmeta">Count-in…<br><span class="muted">First chord: ' + esc(s.items[0].chord.name) + "</span></div>"
+      : '<div class="jchord' + (changed ? " pop" : "") + '">' + esc(it.chord.name) + "<small>" + esc(it.roman) + '</small></div><div class="jmeta"><span class="jlegend"><i class="jr"></i>root <i class="j3"></i>' + (it.chord.q === "sus4" ? '4th' : "3rd") + ' <i class="j5"></i>5th</span>' +
+        '<span class="muted">' + esc(TQ.INV_NAME[it.placement.inv]) + " · " + esc(TQ.SET_SHORT[s.setIdx]) + "</span>" +
+        (s.items.length > 1 ? '<span class="jnext" id="jNext">Next: <b>' + esc(nx.chord.name) + "</b> " + esc(nx.roman) + "</span>" : "") + "</div>";
+    document.getElementById("jLane").innerHTML = s.items.map(function (x, i) { return '<span class="jc' + (i === jam.cur ? " on" : "") + '" style="flex:' + x.beats + '"><b>' + esc(x.chord.name) + "</b><small>" + esc(x.roman) + "</small></span>"; }).join("");
+    var tip = t.tip;
+    if (jamPent(t)) tip = TQ.nm(TQ.diatonic(s.key.root)[5].root) + "m pentatonic = " + TQ.nm(s.key.root) + " major pentatonic. Ringed notes are the chord tones to land on. " + (t.id === "kevin" ? "" : tip);
+    document.getElementById("jTip").textContent = tip;
+    if (!jam.playing) document.querySelectorAll("#jBeats i").forEach(function (b) { b.classList.remove("on"); });
+    jam.dots = jamDots(); board.setDots(jam.dots);
+  }
+  function jamTap(s, f) { Jam.tapNote(TQ.midiAt(s, f)); board.vibrate(s); }
+
   /* ---------- events ---------- */
   document.addEventListener("click", function (e) {
     var el = e.target.closest ? e.target.closest("[data-act]") : null;
@@ -433,6 +630,23 @@
       case "levels": go("levels"); break;
       case "settings": go("settings"); break;
       case "learn": go("learn"); break;
+      case "jam": openJam(null, null); break;
+      case "jamstart": openJam(el.getAttribute("data-track"), +el.getAttribute("data-set")); break;
+      case "jamPlay": jamPlay(); break;
+      case "jamBpm": setBpm(jamBpm(jam.sched.track) + +el.getAttribute("data-v")); break;
+      case "jamSet": P.jam.set = +el.getAttribute("data-v"); save(); jamRebuild(); break;
+      case "jamStyle": P.jam.style = el.getAttribute("data-v"); save(); if (jam.playing) Jam.update({ style: P.jam.style }); renderTransport(); break;
+      case "jamMode": var mv = el.getAttribute("data-v"); P.jam.mode = mv === "lead" ? "lead" : +mv; save(); jamRebuild(); break;
+      case "jamBox": P.jam.boxShift = (P.jam.boxShift || 0) + 1; save(); jamRefresh(); break;
+      case "jamMore": jam.more = !jam.more; renderTransport(); break;
+      case "jamMixer": jam.mixer = !jam.mixer; renderMixer(); renderTransport(); break;
+      case "jamMute": var mk = "m" + el.getAttribute("data-id")[0].toUpperCase() + el.getAttribute("data-id").slice(1); P.jam.mix[mk] = !P.jam.mix[mk]; save(); Jam.set(mk, P.jam.mix[mk]); renderMixer(); break;
+      case "jamTog":
+        var tid = el.getAttribute("data-id");
+        if (tid === "ovPent") P.jam.ovPent = !jamPent(jam.sched.track); else P.jam[tid] = !P.jam[tid];
+        save();
+        if (tid === "loop" && jam.playing) Jam.update({ loop: P.jam.loop });
+        renderTransport(); jamRefresh(); break;
       case "continue": var nu = nextUp(); if (nu) start(nu.part, nu.set); break;
       case "speed": if (speedOpen()) start(0, 0); break;
       case "start": start(+el.getAttribute("data-part"), +el.getAttribute("data-set")); break;
@@ -473,10 +687,12 @@
     else if (e.key === "Backspace" && run.phase === "place" && history.length) { e.preventDefault(); marks = history.pop(); updateBoard(); updatePanel(); }
     else if (e.key === "Escape") { run = null; go("home"); }
   });
+  document.addEventListener("visibilitychange", function () { if (document.hidden && jam.playing) { jamStop(); jam.pausedBg = true; } else if (!document.hidden && jam.pausedBg) { jam.pausedBg = false; if (screen === "jam") toast("Paused while the app was in the background"); } });
+  window.addEventListener("pagehide", function () { if (jam.playing) jamStop(); });
   document.addEventListener("visibilitychange", function () { if (document.hidden) A.metroStop(); else if (screen === "play" && run && run.speed && P.settings.metronome) A.metroStart(P.settings.metronome); });
 
   // test hook (used by the automated tests only)
-  window.__tq = { get run() { return run; }, get marks() { return marks; }, get screen() { return screen; }, tap: tap, check: check, start: start, go: go, P: function () { return P; } };
+  window.__tq = { get run() { return run; }, get marks() { return marks; }, get screen() { return screen; }, tap: tap, check: check, start: start, go: go, P: function () { return P; }, jam: jam, openJam: openJam, jamTap: jamTap };
 
   go("home");
 })();

@@ -141,5 +141,5 @@
   function setMuted(m) { muted = !!m; if (master) master.gain.value = muted ? 0 : volume; }
   function setVolume(v) { volume = v; if (master && !muted) master.gain.value = v; }
 
-  root.TQAudio = { unlock: unlock, pluck: pluck, strum: strum, chime: chime, metroStart: metroStart, metroStop: metroStop, setMuted: setMuted, setVolume: setVolume, _debugPluck: function (midi) { if (!ensure()) return null; var e = pluckBuffer(midi); return { data: Array.prototype.slice.call(e.buf.getChannelData(0), 2048, 2048 + 16384), rate: e.rate, sr: ctx.sampleRate }; }, isSupported: function () { return !!(root.AudioContext || root.webkitAudioContext); } };
+  root.TQAudio = { context: function () { return ensure(); }, unlock: unlock, pluck: pluck, strum: strum, chime: chime, metroStart: metroStart, metroStop: metroStop, setMuted: setMuted, setVolume: setVolume, _debugPluck: function (midi) { if (!ensure()) return null; var e = pluckBuffer(midi); return { data: Array.prototype.slice.call(e.buf.getChannelData(0), 2048, 2048 + 16384), rate: e.rate, sr: ctx.sampleRate }; }, isSupported: function () { return !!(root.AudioContext || root.webkitAudioContext); } };
 })(typeof self !== "undefined" ? self : globalThis);

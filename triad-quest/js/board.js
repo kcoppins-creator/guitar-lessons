@@ -174,8 +174,8 @@
         setTimeout(function () { el.classList.remove("enter"); }, 400);
         self.positionDot(el);
       }
-      el.classList.remove("mark", "ok", "bad", "ghost", "given");
-      el.classList.add(d.kind);
+      var entering = el.classList.contains("enter");
+      el.className = "note " + d.kind + (entering ? " enter" : "");
       el.innerHTML = '<span class="nl">' + (d.label || "") + "</span>" + (d.role ? '<span class="nr">' + d.role + "</span>" : "");
     });
     Object.keys(this.dotEls).forEach(function (key) {
