@@ -1,8 +1,8 @@
 /* Triad Quest service worker: precache everything, serve cache-first, work fully offline. */
-var VERSION = "triad-quest-v1.1.2";
+var VERSION = "triad-quest-v1.3.0";
 var ASSETS = [
   "./", "index.html", "manifest.webmanifest", "css/app.css",
-  "js/theory.js", "js/audio.js", "js/board.js", "js/confetti.js", "js/jam-samples.js", "js/jamdata.js", "js/jam.js", "js/app.js",
+  "js/theory.js", "js/spell.js", "js/keypath.js", "js/intro.js", "js/audio.js", "js/board.js", "js/confetti.js", "js/jam-samples.js", "js/jamdata.js", "js/jam.js", "js/app.js",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/favicon-32.png",
   "icons/apple-touch-icon.png", "icons/apple-touch-icon-180.png", "icons/apple-touch-icon-167.png",
   "icons/apple-touch-icon-152.png", "icons/apple-touch-icon-120.png"

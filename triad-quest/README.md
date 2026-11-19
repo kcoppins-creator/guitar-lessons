@@ -10,6 +10,9 @@ triad-quest/manifest.webmanifest
 triad-quest/sw.js
 triad-quest/css/app.css
 triad-quest/js/theory.js        (music engine: shapes computed from tuning + fret)
+triad-quest/js/keypath.js       (guided key path: key order, key/level unlocks, next key; works on the saved stars)
+triad-quest/js/intro.js         ("Here's what we'll learn" cards for all 16 levels + Jam; text written per level, notes/frets computed per key)
+triad-quest/js/spell.js         (Spell it: note spelling of each triad + the fade-out state machine; pure functions)
 triad-quest/js/audio.js         (Web Audio: Karplus-Strong plucks, chimes, metronome; shares its AudioContext with Jam)
 triad-quest/js/board.js         (fretboard renderer)
 triad-quest/js/confetti.js
@@ -22,6 +25,50 @@ triad-quest/icons/*.png         (apple-touch-icon 180/167/152/120, 192, 512, mas
 ```
 Do NOT publish `tests/`, `tools/`, `screens/`, `preview-jam.m4a` or `preview-jam-v3.mp3`; they are only for development.
 URL: https://kcoppins-creator.github.io/guitar-lessons/triad-quest/
+
+## Guided key path (v1.3.0)
+The 12 major keys in circle-of-fifths order, guitar-friendly keys first: **G → C → D → A → E → F → B♭ → B → E♭ → A♭ → F♯ → D♭**.
+
+- Each key has the same 16 levels, unlocked the same way as G (next string set, then next part). Clearing all 16 levels in a key opens the next key on the path.
+- When you clear the 16th level of a key, the result screen shows **Key cleared!** with extra confetti and moves you to the next key automatically. The next key's card then explains what's new: its sharps or flats, which notes change from the previous key, and its I, IV and V chords, with the I chord drawn on E-A-D. **Let's go** starts Level 1 in the new key. If the next key is already cleared, it skips to the next one that isn't.
+- The Levels screen has a **key path map**: 12 pips showing cleared (✓), current (amber ring) and locked (🔒) keys, with "x/16" levels for open keys. Tap any unlocked pip, or use the Key picker, to play that key. Locked keys can't be picked.
+- Jam's key picker follows the same unlocks. A track's own home key stays playable (Kevin's E jam is always available in E).
+- **Existing progress is kept.** Stars are stored per key exactly as before, so G clears count: a player who already cleared G gets C open with the path at C. Any key you already have stars in stays open, and so do levels you've already cleared. A saved key that isn't open falls back to where the path is up to. Practice mode still opens every key and level.
+
+## Level intros ("Here's what we'll learn")
+Before each level a card explains, in plain English, what the level teaches and why it matters in songs (2–4 short sentences), shows one example on a mini fretboard (notes labelled R / 3 / 5, coloured like the dots; Part 2 shows a chord change with the start shape as silver rings, Part 4 shows a reshape), and lists **Words to know**. Every term is defined the first time it shows up: triad, root/3rd/5th, interval and half step, major and minor 3rd, major vs minor, root position, inversion and string set (Level 1); tuning in 4ths (2); the B-string gap (3); key, Roman numerals and voice leading (5); common tone (6); chord scale, minor triad and diminished (9); vii° (10); ii–V–I (11); relative minor (12); chord quality and sus4 (13); minor iv (14); resolve (15).
+
+- The card shows on every level until that level has been cleared once (in any key). **ⓘ** in the top bar reopens it any time. The level clock is paused while the card is open.
+- **Let's go** (or Enter) closes it. Tick **Don't show intros again** on the card, or use Settings → *Show level intros*.
+- Text is written per level; every chord name, note, fret and interval in it is computed from the theory engine for the key you're playing, so the cards are right in all 12 keys.
+- Jam has its own card the first time you open it (also on ⓘ), covering the timing words: BPM, beat, bar, count-in, loop and pentatonic.
+
+## Curriculum coverage (what the game levels actually drill)
+| Part | Chords (in G) | Qualities | Inversions | String sets |
+|---|---|---|---|---|
+| 1 · The 12 Shapes | I only (G) | major | root, 1st, 2nd: each twice per level (6 shapes) | one per level: E-A-D, A-D-G, D-G-B, G-B-E |
+| 2 · Smooth Moves | I, IV, V (G, C, D) as I–IV–I–V–I | major | any: you pick the closest shape (start shape in 2 of the 3 inversions) | one per level |
+| 3 · Chord Scale | all 7: G Am Bm C D Em F♯dim | major, minor, diminished | one inversion per run, picked at random (replays cover all 3) | one per level |
+| 4 · Shape Shifting | minor, dim and sus4 versions of I, IV, V (Gm Gdim Gsus4 Cm Cdim Csus4 Dm Ddim Dsus4) | minor, diminished, sus4 (from major) | all 3; 6 shapes per run (2 each of minor, dim and sus4, on random I/IV/V roots) | one per level |
+| Speed round | I only; all 7 chords of the key once Part 3 is cleared in that key | major (+ minor, dim) | random | random |
+
+**Keys:** see "Guided key path" below. All 12 major keys are reached in the game levels by following the path; every key has the same 16 levels, with key-correct spellings (E♯dim in F♯, B♭ in F, and so on).
+**Not covered:** augmented and sus2 triads, 7th chords, minor keys as the home key (their chords appear as ii, iii and vi), and starting a reshape from a minor chord.
+
+## Spell it (notes of the triad)
+A strip under the chord name spells the triad with the right sharps/flats for the key, colour-coded like the dots and labelled R / 3 / 5 (4 for sus4): `A = A C♯ E`, `C♯m = C♯ E G♯`, `Gm = G B♭ D`. When the level asks for an inversion it also shows the notes from low to high on the string set (e.g. *2nd inversion on D-G-B, low → high: E A C♯*). After you check, it shows the order of the shape you actually played.
+
+**Auto-fade** (default), tracked per chord root + quality and saved on the device:
+- new chord: shown in full;
+- 3 first-try right answers in a row: dimmed (blurred). Tap or hold it to see it, or it shows by itself after about 4 seconds without an answer;
+- 6 in a row: hidden, with only a Peek button;
+- any miss: back to full.
+
+**Peek** (any time) shows the strip for 3 seconds. It costs 10 points on that shape and never touches your streak. An answer given after a peek, or after the 4-second reveal, doesn't move the fade forward. Retries don't count.
+
+Settings → *Notes of the triad*: **Auto-fade**, **Always**, **After a miss** (shown only after you miss that chord, until you get it right again), **Off** (Peek still works).
+
+In **Jam**, the header spells the current chord, gives its low-to-high order on the lit string set, and spells the next chord. The same setting applies: in Auto-fade, chords you have learned (6 in a row) are hidden there too, and Peek shows them.
 
 ## Jam (backing tracks)
 - **Where:** the "🎸 Jam" button on the home screen, and "Apply it" on the result card after you clear a level ("Congrats on Level N — now let's apply it").
@@ -95,11 +142,14 @@ AAC is used because Safari on iOS decodes it natively. The total is 120 files, a
 Open the URL in Safari, then tap Share > Add to Home Screen. After that it opens full-screen and works offline.
 
 ## Updating
-The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.1.2`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
+The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.3.0`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
 
 ## Tests
 ```
 node tests/theory.test.js                 # music-theory verification (no browser needed)
+node tests/keypath.test.js                # key path: order + spellings, key signatures, unlocks, next key, old saves, key intro cards
+node tests/intro.test.js                  # intro cards: all 16 levels x 12 keys, no empty fields, examples = real shapes, text claims checked, words defined before use
+node tests/spell.test.js                  # Spell it: every key/quality/inversion spelled, low-to-high order, fade state machine
 node tests/jam.test.js                    # Jam scheduler: voicings, chord timings, highlighted tones per chord/key, bar events, pentatonic boxes
 python3 -m http.server 8765 --bind 127.0.0.1 &
 NODE_PATH=<dir with playwright-core>/node_modules node tests/e2e.js http://127.0.0.1:8765/
