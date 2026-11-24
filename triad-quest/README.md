@@ -29,6 +29,11 @@ triad-quest/icons/*.png         (apple-touch-icon 180/167/152/120, 192, 512, mas
 Do NOT publish `tests/`, `tools/`, `screens/`, `preview-jam.m4a` or `preview-jam-v3.mp3`; they are only for development.
 URL: https://kcoppins-creator.github.io/guitar-lessons/triad-quest/
 
+## Notes mode: skipping ahead (v1.4.1)
+- **Test out:** every locked phase shows why it's locked ("Pass Low E or test out") and a **Test out** button. It runs 10 random questions (Find and Name mixed) drawn from that phase *and all earlier phases*, at the same bar: 90% right and a typical time under that phase's target. Passing marks that phase and everything before it passed (tagged "Tested out"; no scores are invented) and offers the next phase. Failing gives one plain line on what to work on (accuracy, naming the missed notes, or speed) and offers to start the highest open phase before it, or test again.
+- **Settings › Unlock all Note Path phases** (off by default) opens every phase without marking anything passed and without touching stars or note stats. Turning it off brings the locks back; anything passed stays passed.
+- The weak-note drill and the heatmap cover whatever is unlocked (by passing, testing out, the setting or Practice mode). Locked notes are faded on the heatmap.
+
 ## Notes mode (v1.4.0)
 Learn every note on the neck (frets 0–12, standard tuning). Our own take on fretboard-note trainers: original design, art and text.
 
@@ -155,7 +160,7 @@ AAC is used because Safari on iOS decodes it natively. The total is 120 files, a
 Open the URL in Safari, then tap Share > Add to Home Screen. After that it opens full-screen and works offline.
 
 ## Updating
-The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.4.0`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
+The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.4.1`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
 
 ## Tests
 ```

@@ -528,3 +528,12 @@ h1, h2, h3 { font-family: var(--round); margin: 0; letter-spacing: -0.01em; }
 .micbar .check { margin-left: 0; }
 .micbar > .muted.small { flex: 1; min-width: 180px; }
 .mictol { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* v1.4.1 test out + lock reasons */
+.nlock .nph.locked { opacity: 1; cursor: default; }
+.nlock .nph.locked .nn, .nlock .nph.locked .nt { opacity: .55; }
+.nwhy2 { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+.ntest { flex: none; min-height: 44px; padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(90, 209, 255, .5); background: rgba(90, 209, 255, .12); color: var(--cyan); font-weight: 700; font-size: 14px; cursor: pointer; }
+.ntest:active { transform: scale(.97); }
+.ntadvice { font-size: 17px; margin: 6px 0 0; }
+.note.hm.hl { background: rgba(255,255,255,.04); border: 1px dotted rgba(255,255,255,.18); box-shadow: none; transform: scale(.55); }

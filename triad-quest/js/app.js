@@ -7,7 +7,7 @@
 
   /* ---------- progress (localStorage is optional; every access is guarded) ---------- */
   var STORE = "triad-quest-app-v1";
-  var DEFAULT_SETTINGS = { sound: true, volume: 0.8, names: false, metronome: 0, orientation: "auto", notes: "auto", intros: true };
+  var DEFAULT_SETTINGS = { sound: true, volume: 0.8, names: false, metronome: 0, orientation: "auto", notes: "auto", intros: true, notesUnlockAll: false };
   function defaultJam() { return { track: "kevin", set: 2, mode: null, style: null, bpm: null, key: null, countIn: true, loop: true, ovTriad: true, ovNext: true, ovPent: null, names: true, boxShift: 0, mix: { drums: 0.9, bass: 0.72, gtr: 0.72, mDrums: false, mBass: false, mGtr: false } }; }
   function fresh() { return { stars: {}, points: 0, bestStreak: 0, speed: {}, practice: false, keyId: "G", last: null, settings: Object.assign({}, DEFAULT_SETTINGS), jam: defaultJam(), spell: {}, seenJamIntro: false, notes: window.TQNotes.freshStore() }; }
   function getStore() {
@@ -169,6 +169,7 @@
       '<div class="setrow col"><span><b>Notes of the triad</b><small>Auto-fade: shown until you get a chord right 3 times in a row, then tap to see; hidden after 6. A miss brings it back. Peek (−' + SP.PEEK_COST + ' points) any time.</small></span>' + seg("notes", s.notes, SP.MODES) + "</div>" +
       '<div class="setrow col"><span><b>Metronome in the speed round</b><small>A click to keep you moving (beats per minute)</small></span>' + seg("metronome", s.metronome, [[0, "Off"], [60, "60"], [80, "80"], [100, "100"]]) + "</div>" +
       sw("practice", P.practice, "Practice mode", "Unlock every level and the key picker") +
+      sw("notesUnlockAll", !!s.notesUnlockAll, "Unlock all Note Path phases", "Open every Notes phase without passing or testing out. Your stats and passed phases stay as they are.") +
       '<button class="setrow danger" data-act="reset"><span><b>Reset progress</b><small>Clears stars, points, streaks and note stats (the Notes heatmap) on this device</small></span></button>' +
       "</div>" + (storageOK ? "" : '<p class="infonote">Storage is blocked in this browser, so settings and progress last until you close the app.</p>') + "</div>";
     var vol = document.getElementById("vol");

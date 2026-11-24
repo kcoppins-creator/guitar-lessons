@@ -27,15 +27,15 @@
 
   /* ---------- the Note Path ---------- */
   var PHASES = [
-    { id: "open", title: "Open strings", strings: [0, 1, 2, 3, 4, 5], frets: [0, 0], kind: "nat", round: 12, targetMs: 3000 },
-    { id: "lowE", title: "The low E string", strings: [0], frets: [0, 12], kind: "nat", round: 16, targetMs: 4500 },
-    { id: "A", title: "The A string", strings: [1], frets: [0, 12], kind: "nat", round: 16, targetMs: 4500 },
-    { id: "EA", title: "E and A together", strings: [0, 1], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
-    { id: "DG", title: "The D and G strings", strings: [2, 3], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
-    { id: "BE", title: "The B and high E strings", strings: [4, 5], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
-    { id: "nat", title: "Every natural note", strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "nat", round: 24, targetMs: 6000 },
-    { id: "acc", title: "Sharps and flats", strings: [0, 1, 2, 3, 4, 5], frets: [1, 12], kind: "acc", round: 24, targetMs: 7000 },
-    { id: "all", title: "The whole neck", strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "all", round: 30, targetMs: 6000 }
+    { id: "open", short: "Open strings", title: "Open strings", strings: [0, 1, 2, 3, 4, 5], frets: [0, 0], kind: "nat", round: 12, targetMs: 3000 },
+    { id: "lowE", short: "Low E", title: "The low E string", strings: [0], frets: [0, 12], kind: "nat", round: 16, targetMs: 4500 },
+    { id: "A", short: "A string", title: "The A string", strings: [1], frets: [0, 12], kind: "nat", round: 16, targetMs: 4500 },
+    { id: "EA", short: "E + A", title: "E and A together", strings: [0, 1], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
+    { id: "DG", short: "D + G", title: "The D and G strings", strings: [2, 3], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
+    { id: "BE", short: "B + high E", title: "The B and high E strings", strings: [4, 5], frets: [0, 12], kind: "nat", round: 20, targetMs: 5000 },
+    { id: "nat", short: "Every natural", title: "Every natural note", strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "nat", round: 24, targetMs: 6000 },
+    { id: "acc", short: "Sharps & flats", title: "Sharps and flats", strings: [0, 1, 2, 3, 4, 5], frets: [1, 12], kind: "acc", round: 24, targetMs: 7000 },
+    { id: "all", short: "Whole neck", title: "The whole neck", strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "all", round: 30, targetMs: 6000 }
   ];
   var PASS_ACC = 0.9;
   function phase(id) { return PHASES.filter(function (p) { return p.id === id; })[0]; }
@@ -82,6 +82,40 @@
     if (res.ok && isFinite(res.medMs)) o.bestMs = o.bestMs === null ? res.medMs : Math.min(o.bestMs, res.medMs);
     if (res.passed) o.passed = true;
     st.phases[p.id] = o; return o;
+  }
+
+  /* ---------- test out: skip ahead by proving you know a phase ----------
+     ~10 random questions from that phase AND every earlier one, at the same 90% / speed bar (the tested phase's time target).
+     Passing marks that phase and everything before it passed. */
+  var TEST_N = 10;
+  function testCells(i) {
+    var seen = {}, out = [];
+    for (var k = 0; k <= i; k++) phaseCells(PHASES[k]).forEach(function (c) { if (!seen[c.key]) { seen[c.key] = 1; out.push(c); } });
+    return out;
+  }
+  /* the quiz rules for a test-out round: any string's frets 0-12, sharps/flats only once phase 8 is included */
+  function testPhase(i) { return { id: "test-" + PHASES[i].id, strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: i >= 7 ? "all" : "nat", round: TEST_N, targetMs: PHASES[i].targetMs }; }
+  function testResult(i, answers) { return roundResult(testPhase(i), answers); }
+  function applyTestOut(st, i) {
+    for (var k = 0; k <= i; k++) {
+      var o = st.phases[PHASES[k].id] || { rounds: 0, passed: false, bestAcc: 0, bestMs: null };
+      if (!o.passed) { o.passed = true; o.testedOut = true; }
+      st.phases[PHASES[k].id] = o;
+    }
+    return st;
+  }
+  /* why a phase is locked, in plain words: "Pass The low E string or test out" */
+  function lockReason(st, i, practice) {
+    if (phaseUnlocked(st, i, practice)) return "";
+    return "Pass " + PHASES[i - 1].short + " or test out";
+  }
+  /* one plain line on what to work on after a failed test out */
+  function testAdvice(i, res, answers) {
+    var p = testPhase(i), med = isFinite(res.medMs) ? (res.medMs / 1000).toFixed(1) : null, missed = [];
+    (answers || []).forEach(function (a) { if (!a.ok && a.key) { var c = cell(+a.key.split(",")[0], +a.key.split(",")[1]); var w = names(c.pc)[0] + " (" + SNAME[c.s] + (c.f ? " " + c.f : " open") + ")"; if (missed.indexOf(w) < 0) missed.push(w); } });
+    if (res.n < p.round) return "That test wasn't finished. Try again when you have a minute.";
+    if (!res.passAcc) return res.ok + " of " + res.n + " right: work on accuracy first" + (missed.length ? ", especially " + missed.slice(0, 3).join(", ") : "") + ".";
+    return "Accurate, but your typical answer took " + med + " s (target " + (p.targetMs / 1000) + " s): work on speed, using landmark frets instead of counting.";
   }
 
   /* ---------- per-note stats ---------- */
@@ -282,6 +316,7 @@
     fretsFor: fretsFor, allCells: allCells, phase: phase, phaseCells: phaseCells, padFor: padFor, median: median, roundResult: roundResult,
     freshStore: freshStore, normalize: normalize, phaseUnlocked: phaseUnlocked, currentPhase: currentPhase, recordRound: recordRound,
     stat: stat, record: record, accOf: accOf, mastered: mastered, weakness: weakness, heat: heat,
+    TEST_N: TEST_N, testCells: testCells, testPhase: testPhase, testResult: testResult, applyTestOut: applyTestOut, lockReason: lockReason, testAdvice: testAdvice,
     pickRandom: pickRandom, pickBag: pickBag, pickDrill: pickDrill, drillMiss: drillMiss, drillCells: drillCells, weakest: weakest, checkFind: checkFind, checkName: checkName };
   root.TQNotes = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

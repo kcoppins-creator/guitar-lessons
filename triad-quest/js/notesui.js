@@ -11,7 +11,7 @@
   function app() { return document.getElementById("app"); }
   function st() { return H().P().notes; }
   function esc(x) { return H().esc(x); }
-  function practice() { return !!H().P().practice; }
+  function practice() { var P = H().P(); return !!(P.practice || (P.settings && P.settings.notesUnlockAll)); }
   function later(fn, ms) { var t = setTimeout(fn, ms); timers.push(t); return t; }
   function now() { return (root.performance && performance.now) ? performance.now() : Date.now(); }
   function mkBoard(el) { var B = H().Board; board = new B(el, { onTap: onTap, getOrientation: H().orientation }); board.el.classList.add("nboard"); return board; }
@@ -46,10 +46,11 @@
     var drill = N.drillCells(s, practice()), weak = N.weakest(s, drill, 4);
     var p = N.PHASES[sel], ps = s.phases[p.id];
     var h = '<div class="page nhome"><header class="pagebar"><button class="icon-btn" data-act="home" aria-label="Back">‹</button><h2>Notes</h2><span class="muted small">' + masteredCount() + "/78 notes mastered</span></header>" +
-      '<div class="ncols"><section class="npath"><div class="nph-head"><b>Note Path</b><span class="muted small">Pass a phase with ' + Math.round(N.PASS_ACC * 100) + "% right and a quick typical answer time</span></div><ol class=\"nphases\">" +
+      '<div class="ncols"><section class="npath"><div class="nph-head"><b>Note Path</b><span class="muted small">Pass a phase with ' + Math.round(N.PASS_ACC * 100) + "% right and a quick typical answer time" + (H().P().settings.notesUnlockAll ? " · all phases unlocked in Settings" : ". Already know them? Test out.") + "</span></div><ol class=\"nphases\">" +
       N.PHASES.map(function (q, i) {
         var o = s.phases[q.id], open = N.phaseUnlocked(s, i, practice()), state = o && o.passed ? "passed" : i === cur ? "current" : open ? "open" : "locked";
-        return '<li><button class="nph ' + state + (i === sel ? " sel" : "") + '" data-act="nPhase" data-i="' + i + '"' + (open ? "" : " disabled") + '><span class="nn">' + (state === "passed" ? "✓" : state === "locked" ? "🔒" : i + 1) + '</span><span class="nt">' + esc(q.title) + "</span><span class=\"nb\">" + (o && o.rounds ? Math.round(o.bestAcc * 100) + "%" + (o.bestMs ? " · " + (o.bestMs / 1000).toFixed(1) + " s" : "") : "") + "</span></button></li>";
+        if (!open) return '<li class="nlock"><div class="nph locked"><span class="nn">🔒</span><span class="nt">' + esc(q.title) + '<small class="nwhy2">' + esc(N.lockReason(s, i, practice())) + '</small></span><button class="ntest" data-act="nTestOut" data-i="' + i + '" aria-label="Test out of ' + esc(q.title) + '">Test out</button></div></li>';
+        return '<li><button class="nph ' + state + (i === sel ? " sel" : "") + '" data-act="nPhase" data-i="' + i + '"><span class="nn">' + (state === "passed" ? "✓" : i + 1) + '</span><span class="nt">' + esc(q.title) + (o && o.testedOut && !o.rounds ? '<small class="nwhy2">Tested out</small>' : "") + "</span><span class=\"nb\">" + (o && o.rounds ? Math.round(o.bestAcc * 100) + "%" + (o.bestMs ? " · " + (o.bestMs / 1000).toFixed(1) + " s" : "") : "") + "</span></button></li>";
       }).join("") + "</ol>" +
       '<div class="nstart"><div class="muted small">Phase ' + (sel + 1) + ": " + esc(p.title) + " · " + p.round + " questions · target " + Math.round(N.PASS_ACC * 100) + "% and " + (p.targetMs / 1000) + " s" + (ps && ps.passed ? " · passed ✓" : "") + ' <button class="linkbtn" data-act="nIntro" data-i="' + sel + '">ⓘ What\u2019s in it</button></div>' +
       '<div class="nbtns"><button class="btn check" data-act="nStart" data-type="find">Find the Note</button><button class="btn check" data-act="nStart" data-type="name">Name That Note</button><button class="btn" data-act="nStart" data-type="mix">Mixed</button></div></div></section>' +
@@ -65,6 +66,7 @@
   function startRound(cfg) {
     var s = st(), cells, total;
     if (cfg.mode === "drill") { cells = N.drillCells(s, practice()); total = 20; }
+    else if (cfg.mode === "test") { cells = N.testCells(cfg.phase); total = N.TEST_N; }
     else { var p = N.PHASES[cfg.phase]; cells = N.phaseCells(p); total = p.round; }
     quiz = { cfg: cfg, cells: cells, total: total, bag: [], i: 0, answers: [], hist: [], queue: [], streak: 0, kinds: [], target: null, kind: null, answered: false, t0: 0, why: "" };
     go("notes-quiz");
@@ -75,10 +77,10 @@
     var paused = now();
     H().openCard(N.phaseIntro(N.PHASES[i].id), function () { if (quiz && !quiz.answered) quiz.t0 += now() - paused; });
   }
-  function phaseOf() { return quiz.cfg.mode === "path" ? N.PHASES[quiz.cfg.phase] : { strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "all", targetMs: 6000 }; }
+  function phaseOf() { return quiz.cfg.mode === "path" ? N.PHASES[quiz.cfg.phase] : quiz.cfg.mode === "test" ? N.testPhase(quiz.cfg.phase) : { strings: [0, 1, 2, 3, 4, 5], frets: [0, 12], kind: "all", targetMs: 6000 }; }
   function renderQuiz() {
     app().classList.add("screen-play");
-    var c = quiz.cfg, kick = c.mode === "drill" ? "Weak-note drill" : "Note Path · Phase " + (c.phase + 1) + " · <b>" + esc(N.PHASES[c.phase].title) + "</b>";
+    var c = quiz.cfg, kick = c.mode === "drill" ? "Weak-note drill" : c.mode === "test" ? "Test out · <b>" + esc(N.PHASES[c.phase].title) + "</b> + earlier phases · need 90% and " + (N.PHASES[c.phase].targetMs / 1000) + " s" : "Note Path · Phase " + (c.phase + 1) + " · <b>" + esc(N.PHASES[c.phase].title) + "</b>";
     app().innerHTML = '<div class="play nplay"><header class="topbar"><button class="icon-btn" data-act="nHome" aria-label="Back to Notes">‹</button>' +
       '<div class="tb-title"><div class="tb-kicker">' + kick + '</div><div class="progress" id="nProg"></div></div>' +
       (c.mode === "path" ? '<button class="icon-btn info" data-act="nIntro" data-i="' + c.phase + '" aria-label="What this phase teaches">ⓘ</button>' : "") +
@@ -191,6 +193,10 @@
     if (c.mode === "path") {
       var p = N.PHASES[c.phase], was = !!(s.phases[p.id] && s.phases[p.id].passed);
       res = N.roundResult(p, quiz.answers); N.recordRound(s, p, res); res.newPass = res.passed && !was;
+    } else if (c.mode === "test") {
+      res = N.testResult(c.phase, quiz.answers);
+      if (res.passed) { N.applyTestOut(s, c.phase); res.newPass = true; }
+      else res.advice = N.testAdvice(c.phase, res, quiz.answers);
     } else res = N.roundResult({ round: quiz.total, targetMs: 6000 }, quiz.answers);
     H().save();
     quiz.result = res;
@@ -200,8 +206,17 @@
     var q = quiz, r = q.result, c = q.cfg, s = st();
     var missed = []; q.answers.forEach(function (a) { if (!a.ok && missed.indexOf(a.key) < 0) missed.push(a.key); });
     var med = isFinite(r.medMs) ? (r.medMs / 1000).toFixed(1) + " s" : "–";
-    var h = '<div class="result"><div class="rcard nres"><div class="rk">' + (c.mode === "drill" ? "Weak-note drill" : "Note Path · Phase " + (c.phase + 1) + " · " + esc(N.PHASES[c.phase].title)) + "</div>";
-    if (c.mode === "path") {
+    var h = '<div class="result"><div class="rcard nres"><div class="rk">' + (c.mode === "drill" ? "Weak-note drill" : c.mode === "test" ? "Test out · " + esc(N.PHASES[c.phase].title) : "Note Path · Phase " + (c.phase + 1) + " · " + esc(N.PHASES[c.phase].title)) + "</div>";
+    if (c.mode === "test") {
+      var tp = N.PHASES[c.phase], tn = N.PHASES[c.phase + 1], prevI = c.phase - 1;
+      while (prevI > 0 && !N.phaseUnlocked(s, prevI, practice())) prevI--;
+      h += "<h2>" + (r.passed ? "Tested out!" : "Not yet") + "</h2>" +
+        '<div class="rstats">' + stat("Right first time", Math.round(r.acc * 100) + "% " + (r.passAcc ? "✓" : "✗"), "need " + Math.round(N.PASS_ACC * 100) + "%") + stat("Typical time", med + " " + (r.passSpeed ? "✓" : "✗"), "need ≤ " + tp.targetMs / 1000 + " s") + stat("Notes", r.ok + "/" + r.n) + "</div>";
+      if (r.passed) h += '<p class="infonote">Phases 1–' + (c.phase + 1) + " are now marked passed" + (tn ? ". Next up: <b>Phase " + (c.phase + 2) + " · " + esc(tn.title) + "</b>" : "") + ".</p>" +
+        '<div class="ractions">' + (tn ? '<button class="btn check" data-act="nGoPhase" data-i="' + (c.phase + 1) + '">Start Phase ' + (c.phase + 2) + " ›</button>" : "") + '<button class="btn' + (tn ? "" : " check") + '" data-act="nHome">Notes</button></div>';
+      else h += '<p class="ntadvice">' + esc(r.advice) + "</p>" +
+        '<div class="ractions"><button class="btn check" data-act="nGoPhase" data-i="' + prevI + '">Start Phase ' + (prevI + 1) + ": " + esc(N.PHASES[prevI].title) + ' ›</button><button class="btn" data-act="nTestOut" data-i="' + c.phase + '">Test again</button><button class="btn" data-act="nHome">Notes</button></div>';
+    } else if (c.mode === "path") {
       var p = N.PHASES[c.phase], nx = N.PHASES[c.phase + 1];
       h += "<h2>" + (r.passed ? (r.newPass ? "Phase passed!" : "Passed again") : "Round done") + "</h2>" +
         '<div class="rstats">' + stat("Right first time", Math.round(r.acc * 100) + "% " + (r.passAcc ? "✓" : "✗"), "need " + Math.round(N.PASS_ACC * 100) + "%") + stat("Typical time", med + " " + (r.passSpeed ? "✓" : "✗"), "need ≤ " + p.targetMs / 1000 + " s") + stat("Notes", r.ok + "/" + r.n) + "</div>";
@@ -215,7 +230,7 @@
         (weak.length ? '<p class="muted">Still weakest: ' + weak.map(function (x) { return esc(where(x)); }).join(", ") + "</p>" : "") +
         '<div class="ractions"><button class="btn check" data-act="nDrill">Drill again</button><button class="btn" data-act="nHeat">Heatmap</button><button class="btn" data-act="nHome">Notes</button></div>';
     }
-    if (missed.length) h += '<p class="muted small">Missed this round: ' + missed.map(function (k) { return esc(where(N.cell(+k.split(",")[0], +k.split(",")[1]))); }).join(", ") + "</p>";
+    if (missed.length && c.mode !== "test") h += '<p class="muted small">Missed this round: ' + missed.map(function (k) { return esc(where(N.cell(+k.split(",")[0], +k.split(",")[1]))); }).join(", ") + "</p>";
     app().innerHTML = h + "</div></div>";
     if (r.passed && root.TQConfetti) root.TQConfetti(r.newPass ? 220 : 90);
     try { H().A.chime(r.passed ? "fanfare" : "ok"); } catch (e) { /* audio optional */ }
@@ -234,15 +249,17 @@
     drawHeat();
   }
   function drawHeat() {
-    var s = st(), dots = [], tried = 0;
+    var s = st(), dots = [], tried = 0, open = {}, unl = N.drillCells(s, practice());
+    unl.forEach(function (c) { open[c.key] = 1; });
     N.allCells().forEach(function (c) {
-      var x = N.stat(s, c.key), h = N.heat(x, heatWhat); if (x && x.n) tried++;
-      dots.push({ key: c.key, s: c.s, f: c.f, kind: "hm " + (h === null ? "hn" : "h" + h) + (N.mastered(x) ? " mst" : "") + (heatSel === c.key ? " hsel" : ""), label: N.names(c.pc)[0] });
+      var x = N.stat(s, c.key), h = N.heat(x, heatWhat), lk = !open[c.key]; if (x && x.n && !lk) tried++;
+      dots.push({ key: c.key, s: c.s, f: c.f, kind: "hm " + (lk ? "hl" : h === null ? "hn" : "h" + h) + (!lk && N.mastered(x) ? " mst" : "") + (heatSel === c.key ? " hsel" : ""), label: lk ? "" : N.names(c.pc)[0] });
     });
     board.setDots(dots);
-    document.getElementById("nHeatSum").textContent = tried + "/78 notes tried · " + masteredCount() + " mastered";
-    var weak = N.weakest(s, N.allCells(), 6), info;
-    if (heatSel) {
+    document.getElementById("nHeatSum").textContent = tried + "/" + unl.length + " unlocked notes tried · " + masteredCount() + " mastered" + (unl.length < 78 ? " · faded = locked phase" : "");
+    var weak = N.weakest(s, unl, 6), info;
+    if (heatSel && !open[heatSel]) info = "That note is in a locked phase. Pass or test out of it on the Note Path (or unlock all phases in Settings).";
+    else if (heatSel) {
       var c = N.cell(+heatSel.split(",")[0], +heatSel.split(",")[1]), x = N.stat(s, heatSel);
       info = "<b>" + esc(c.name) + "</b> on the " + esc(sname(c.s)) + ", " + (c.f ? "fret " + c.f : "open") + ": " +
         (x && x.n ? x.ok + "/" + x.n + " right · typical " + (x.ms ? (x.ms / 1000).toFixed(1) + " s" : "–") + " · " + (N.mastered(x) ? "mastered ✓" : x.streak + " right in a row") : "not tried yet");
@@ -377,7 +394,8 @@
       case "nPhase": sel = i; renderHome(); break;
       case "nIntro": openPhaseCard(isNaN(i) ? sel : i); break;
       case "nStart": startRound(view === "notes-mic" ? { mode: "path", phase: N.currentPhase(st()), type: "find" } : { mode: "path", phase: sel === null ? N.currentPhase(st()) : sel, type: el.getAttribute("data-type") }); break;
-      case "nGoPhase": sel = i; startRound({ mode: "path", phase: i, type: quiz ? quiz.cfg.type : "mix" }); break;
+      case "nGoPhase": sel = i; startRound({ mode: "path", phase: i, type: quiz && quiz.cfg.mode === "path" ? quiz.cfg.type : "mix" }); break;
+      case "nTestOut": startRound({ mode: "test", phase: i, type: "mix" }); break;
       case "nAgain": startRound(quiz.cfg); break;
       case "nDrill": startRound({ mode: "drill", type: "mix" }); break;
       case "nHeat": heatSel = null; go("notes-heat"); break;

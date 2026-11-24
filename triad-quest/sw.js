@@ -1,5 +1,5 @@
 /* Triad Quest service worker: precache everything, serve cache-first, work fully offline. */
-var VERSION = "triad-quest-v1.4.0";
+var VERSION = "triad-quest-v1.4.1";
 var ASSETS = [
   "./", "index.html", "manifest.webmanifest", "css/app.css",
   "js/theory.js", "js/spell.js", "js/keypath.js", "js/intro.js", "js/audio.js", "js/board.js", "js/confetti.js", "js/jam-samples.js", "js/jamdata.js", "js/jam.js", "js/notes.js", "js/pitch.js", "js/notesui.js", "js/app.js",
