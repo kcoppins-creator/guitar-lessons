@@ -19,12 +19,25 @@ triad-quest/js/confetti.js
 triad-quest/js/jam-samples.js   (generated list of sample files + tuning data)
 triad-quest/js/jamdata.js       (Jam progressions, voicings, pentatonic boxes, drum/bass/guitar patterns; pure functions)
 triad-quest/js/jam.js           (Jam audio engine: sample loader, look-ahead scheduler, mixing, reverb, limiter)
+triad-quest/js/notes.js         (Notes mode engine: note names, Note Path phases, per-note stats, mastery, weak-note drill picker; pure functions)
+triad-quest/js/pitch.js         (Mic mode: YIN pitch detection + microphone listener)
+triad-quest/js/notesui.js       (Notes mode screens: Note Path, quizzes, drill, heatmap, Mic mode, chord tones)
 triad-quest/js/app.js           (screens, game flow, scoring, progress, Jam screen)
 triad-quest/audio/*.m4a         (120 AAC samples, about 3.4 MB, see "Sample sources and licences")
 triad-quest/icons/*.png         (apple-touch-icon 180/167/152/120, 192, 512, maskable 512, favicon 32)
 ```
 Do NOT publish `tests/`, `tools/`, `screens/`, `preview-jam.m4a` or `preview-jam-v3.mp3`; they are only for development.
 URL: https://kcoppins-creator.github.io/guitar-lessons/triad-quest/
+
+## Notes mode (v1.4.0)
+Learn every note on the neck (frets 0–12, standard tuning). Our own take on fretboard-note trainers: original design, art and text.
+
+- **Note Path:** 9 phases: open strings → low E → A → E+A → D+G → B+high E → every natural note → sharps and flats (shown with both names, e.g. F♯/G♭) → the whole neck. A phase passes with **90% right and a typical (median) answer time under its target** (3 s for open strings up to 7 s for sharps/flats), over a full round (12–30 questions). Passing unlocks the next phase. Each phase opens with an intro card in the same style as the level intros (plain English, a mini fretboard, "Words to know"), shown the first time and on the ⓘ button (the timer pauses while it's open).
+- **Quizzes:** *Find the Note* (the prompt names the note and the string; tap the fret; frets 0 and 12 both count for the open-string note) and *Name That Note* (one fret is marked; pick from a fixed pad of 7 letters, or all 12 notes once sharps/flats are in, so you can't guess by elimination; letter keys work on a keyboard). *Mixed* alternates both, never three of a kind running. Prompts come from a shuffled bag: every note of the phase once, in a new random order each time, never the same note twice running and never the same note name three times running.
+- **Stats + heatmap:** every first answer is stored per note (string + fret): right/wrong count, current streak and a smoothed answer time (right answers only). The heatmap colours every note by accuracy or speed (grey = not tried, white ring = mastered: 3+ right in a row with a typical time of 3 s or less). Tap a note for its numbers. Saved in the same localStorage entry as stars, so **Reset progress clears it too**. Older saves get an empty Notes record and keep everything else.
+- **Weak-note drill:** 20 prompts from the phases you've unlocked. Picks are weighted toward the weakest notes (weakness = missed often + slow + wrong last time + missed recently; unseen notes in the middle), a mastered note comes back every 5th prompt for review (the one not seen for longest), and a note you miss comes back 3 prompts later. Mastered notes are never dropped entirely.
+- **Mic mode:** play the asked note on the guitar. Pitch detection is YIN on the microphone signal (no echo cancellation, noise suppression or auto-gain; 60 Hz high-pass), 70–1400 Hz, so it covers low E (82 Hz) to the high E string's 12th fret (659 Hz). A note counts once 4 frames in a row (about 0.25 s) agree; it must be the exact pitch of that string and fret, within ±25/35/50 cents (default ±35). Right name in the wrong octave is explained. A Tuner tab shows note, Hz and cents. The still-ringing previous note is ignored for the next prompt. If the microphone is blocked or missing, it says how to fix it (iPad: Settings › Apps › Safari › Microphone) and offers tap practice instead. Limits: pitch alone can't tell *which string* you played (A on low E fret 5 and the open A string are the same pitch), so the string in the prompt is on trust; tune the guitar first; it needs https (the published site) and a user tap to start; nothing is recorded or sent anywhere.
+- **Chord tones:** the current Triad Quest key's seven chords as chips; tap one to see every root, 3rd and 5th on frets 0–12 (same colours as Jam), or **Scale** for all seven notes.
 
 ## Guided key path (v1.3.0)
 The 12 major keys in circle-of-fifths order, guitar-friendly keys first: **G → C → D → A → E → F → B♭ → B → E♭ → A♭ → F♯ → D♭**.
@@ -142,7 +155,7 @@ AAC is used because Safari on iOS decodes it natively. The total is 120 files, a
 Open the URL in Safari, then tap Share > Add to Home Screen. After that it opens full-screen and works offline.
 
 ## Updating
-The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.3.0`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
+The service worker serves files from its cache first. When you change any file, also change `VERSION` in `sw.js` (currently `triad-quest-v1.4.0`). Otherwise installed copies keep the old files. The audio file list comes from `js/jam-samples.js` via `importScripts`.
 
 ## Tests
 ```
@@ -150,9 +163,12 @@ node tests/theory.test.js                 # music-theory verification (no browse
 node tests/keypath.test.js                # key path: order + spellings, key signatures, unlocks, next key, old saves, key intro cards
 node tests/intro.test.js                  # intro cards: all 16 levels x 12 keys, no empty fields, examples = real shapes, text claims checked, words defined before use
 node tests/spell.test.js                  # Spell it: every key/quality/inversion spelled, low-to-high order, fade state machine
+node tests/notes.test.js                  # Notes mode: note names on all 78 frets, octave/5-fret facts in the intro text, phases, answer checks, pass rules, stats, mastery, prompt bag, weak-note drill
+node tests/pitch.test.js                  # pitch detection: synthetic tones on all 78 notes at 44.1/48 kHz, weak-fundamental low E, noise, silence, wrong octave, real guitar samples (needs ffmpeg)
 node tests/jam.test.js                    # Jam scheduler: voicings, chord timings, highlighted tones per chord/key, bar events, pentatonic boxes
 python3 -m http.server 8765 --bind 127.0.0.1 &
 NODE_PATH=<dir with playwright-core>/node_modules node tests/e2e.js http://127.0.0.1:8765/
+#   (includes Notes mode, and Mic mode via Chrome's fake microphone playing tools/make_mic_wav.js output; ONLY=notes runs just those)
 node tests/render_preview.js preview-jam.m4a kevin E 2 rock 92 26   # offline render (OfflineAudioContext) of a jam preview
 tests/measure_mix.sh <label>             # isolated kick/bass/guitar + full mix band energies (needs the local server)
 python3 tools/build_samples.py            # re-download/re-encode the samples (needs ffmpeg + numpy)

@@ -9,7 +9,7 @@
   var STORE = "triad-quest-app-v1";
   var DEFAULT_SETTINGS = { sound: true, volume: 0.8, names: false, metronome: 0, orientation: "auto", notes: "auto", intros: true };
   function defaultJam() { return { track: "kevin", set: 2, mode: null, style: null, bpm: null, key: null, countIn: true, loop: true, ovTriad: true, ovNext: true, ovPent: null, names: true, boxShift: 0, mix: { drums: 0.9, bass: 0.72, gtr: 0.72, mDrums: false, mBass: false, mGtr: false } }; }
-  function fresh() { return { stars: {}, points: 0, bestStreak: 0, speed: {}, practice: false, keyId: "G", last: null, settings: Object.assign({}, DEFAULT_SETTINGS), jam: defaultJam(), spell: {}, seenJamIntro: false }; }
+  function fresh() { return { stars: {}, points: 0, bestStreak: 0, speed: {}, practice: false, keyId: "G", last: null, settings: Object.assign({}, DEFAULT_SETTINGS), jam: defaultJam(), spell: {}, seenJamIntro: false, notes: window.TQNotes.freshStore() }; }
   function getStore() {
     try { var ls = window.localStorage; if (!ls) return null; ls.setItem(STORE + "-probe", "1"); ls.removeItem(STORE + "-probe"); return ls; }
     catch (e) { return null; }
@@ -31,6 +31,7 @@
       if (o.settings && typeof o.settings === "object") p.settings = Object.assign({}, DEFAULT_SETTINGS, o.settings);
       if (o.spell && typeof o.spell === "object") p.spell = o.spell;
       if (o.seenJamIntro) p.seenJamIntro = true;
+      p.notes = window.TQNotes.normalize(o.notes);
       // a key that isn't open on the guided path (and has no stars) falls back to where the path is up to
       if (window.TQKeys && !window.TQKeys.keyUnlocked(p.stars, p.keyId, p.practice)) p.keyId = window.TQKeys.current(p.stars, p.practice);
       if (o.jam && typeof o.jam === "object") { var dj = defaultJam(); p.jam = Object.assign(dj, o.jam); p.jam.mix = Object.assign(defaultJam().mix, o.jam.mix || {}); }
@@ -79,6 +80,7 @@
     if (tick) { clearInterval(tick); tick = null; }
     A.metroStop();
     if (window.TQJam && screen === "jam") { window.TQJam.stop(); jam.playing = false; }
+    if (window.TQNotesUI) window.TQNotesUI.teardown();
   }
   function go(name) {
     teardown();
@@ -91,6 +93,7 @@
     else if (name === "result") renderResult();
     else if (name === "play") renderPlay();
     else if (name === "jam") renderJam();
+    else if (name.indexOf("notes") === 0 && window.TQNotesUI) window.TQNotesUI.render(name);
     app.scrollTop = 0;
   }
 
@@ -108,6 +111,7 @@
       '<button class="big primary" data-act="continue"' + (nu ? "" : " disabled") + '><span class="bt">' + (P.points > 0 ? "Continue" : "Start") + '</span><span class="bs">' + esc(contLabel) + "</span></button>" +
       '<button class="big" data-act="levels"><span class="bt">Levels</span><span class="bs">4 parts · 16 levels · ' + esc(kd.label) + "</span></button>" +
       '<button class="big" data-act="speed"' + (speedOpen() ? "" : " disabled") + '><span class="bt">Speed Round</span><span class="bs">' + (speedOpen() ? "60 seconds · as many shapes as you can" : "Unlocks after Part 1") + "</span></button>" +
+      '<button class="big notesbtn" data-act="notes"><span class="bt">🎯 Notes</span><span class="bs">Learn every note on the neck · ' + esc(window.TQNotesUI ? window.TQNotesUI.homeLine() : "Note Path, drills and a heatmap") + "</span></button>" +
       '<button class="big jambtn" data-act="jam"><span class="bt">🎸 Jam</span><span class="bs">Play along with a band · Kevin\'s E jam + ' + (jamOpenCount() - 1) + " curriculum tracks open</span></button>" +
       '<div class="row2"><button class="big small" data-act="learn"><span class="bt">How it works</span></button>' +
       '<button class="big small" data-act="settings"><span class="bt">Settings</span></button></div>' +
@@ -165,7 +169,7 @@
       '<div class="setrow col"><span><b>Notes of the triad</b><small>Auto-fade: shown until you get a chord right 3 times in a row, then tap to see; hidden after 6. A miss brings it back. Peek (−' + SP.PEEK_COST + ' points) any time.</small></span>' + seg("notes", s.notes, SP.MODES) + "</div>" +
       '<div class="setrow col"><span><b>Metronome in the speed round</b><small>A click to keep you moving (beats per minute)</small></span>' + seg("metronome", s.metronome, [[0, "Off"], [60, "60"], [80, "80"], [100, "100"]]) + "</div>" +
       sw("practice", P.practice, "Practice mode", "Unlock every level and the key picker") +
-      '<button class="setrow danger" data-act="reset"><span><b>Reset progress</b><small>Clears stars, points and streaks on this device</small></span></button>' +
+      '<button class="setrow danger" data-act="reset"><span><b>Reset progress</b><small>Clears stars, points, streaks and note stats (the Notes heatmap) on this device</small></span></button>' +
       "</div>" + (storageOK ? "" : '<p class="infonote">Storage is blocked in this browser, so settings and progress last until you close the app.</p>') + "</div>";
     var vol = document.getElementById("vol");
     vol.addEventListener("input", function () { P.settings.volume = +vol.value; A.setVolume(+vol.value); save(); });
@@ -239,8 +243,9 @@
   function everCleared(part, set) { var id = "|p" + part + "s" + set; return Object.keys(P.stars).some(function (k) { return k.slice(-id.length) === id && P.stars[k] > 0; }); }
   function miniBoard(ex) {
     if (ex.kind === "timing") return '<div class="mbeats"><span>1</span><span>2</span><span>3</span><span>4</span></div>';
-    var strs = TQ.SETS[ex.set].slice().reverse(), all = ex.frets.concat(ex.fromFrets || []);
+    var strs = (ex.strings || TQ.SETS[ex.set]).slice().reverse(), all = ex.frets.concat(ex.fromFrets || []);
     var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), st = lo <= 2 ? 0 : lo - 1, en = Math.max(hi + 1, st + 4);
+    if (ex.range) { st = Math.max(0, ex.range[0] <= 2 ? 0 : ex.range[0] - 1); en = Math.max(ex.range[1], st + 3); }
     function at(list, s, f) { return (list || []).filter(function (d) { return d.string === s && d.fret === f; })[0]; }
     var h = '<div class="mini" style="--cols:' + (en - st + 1) + '">';
     strs.forEach(function (s) {
@@ -270,13 +275,13 @@
     var x = given || (screen === "jam" ? IN.forJam(jamBpm(jam.sched.track)) : (run && !run.speed ? IN.forLevel(run.part, run.set, keyIdx()) : null));
     if (!x) return;
     host.insertAdjacentHTML("beforeend", introHtml(x));
-    intro = { at: Date.now(), onGo: onGo || null, given: !!given };
+    intro = { at: Date.now(), onGo: onGo || null, given: !!given, id: x.id || "" };
     var b = document.querySelector("#intro .igo"); if (b) b.focus({ preventScroll: true });
   }
   function closeIntro() {
     var el = document.getElementById("intro"); if (!el) { intro = null; return; }
     var no = document.getElementById("introNo");
-    if (no && !(intro && intro.given)) { P.settings.intros = !no.checked; }
+    if (no && !(intro && intro.id.indexOf("key-") === 0)) { P.settings.intros = !no.checked; }
     if (screen === "jam") P.seenJamIntro = true;
     save();
     if (intro && run && screen === "play" && !intro.given) { var dt = Date.now() - intro.at; run.itemStart += dt; run.runStart += dt; }
@@ -768,6 +773,7 @@
     var el = e.target.closest ? e.target.closest("[data-act]") : null;
     if (!el || el.disabled) return;
     var act = el.getAttribute("data-act");
+    if (act.charAt(0) === "n" && act.length > 1 && act.charAt(1) === act.charAt(1).toUpperCase() && window.TQNotesUI) { window.TQNotesUI.act(act, el); return; }
     switch (act) {
       case "home": go("home"); break;
       case "levels": go("levels"); break;
@@ -777,6 +783,7 @@
       case "jamstart": openJam(el.getAttribute("data-track"), +el.getAttribute("data-set")); break;
       case "jamPlay": jamPlay(); break;
       case "intro": openIntro(); break;
+      case "notes": go("notes"); break;
       case "pickKey": var pk = el.getAttribute("data-v"); if (keyOpen(pk)) { P.keyId = pk; save(); renderLevels(); } break;
       case "keyIntro": openKeyIntro(el.getAttribute("data-v"), el.getAttribute("data-from")); break;
       case "introGo": closeIntro(); break;
@@ -823,7 +830,7 @@
         var sid = el.getAttribute("data-id"), val = el.getAttribute("data-v");
         P.settings[sid] = sid === "metronome" ? +val : val; save(); renderSettings(); break;
       case "reset":
-        if (window.confirm("Reset all stars, points and streaks on this device?")) { var keep = P.settings; P = fresh(); P.settings = keep; streak = 0; save(); go("home"); }
+        if (window.confirm("Reset all stars, points, streaks and note stats (the heatmap) on this device?")) { var keep = P.settings; P = fresh(); P.settings = keep; streak = 0; save(); go("home"); }
         break;
     }
   });
@@ -836,6 +843,7 @@
   document.addEventListener("touchend", unlockAudio, true);
   document.addEventListener("keydown", function (e) {
     if (document.getElementById("intro")) { if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); closeIntro(); } return; }
+    if (screen.indexOf("notes") === 0 && window.TQNotesUI) { window.TQNotesUI.key(e); return; }
     if (screen !== "play" || !run) { if (e.key === "Escape" && screen !== "home") go("home"); return; }
     if (e.key === "Enter") { e.preventDefault(); if (run.phase === "place") check(); else if (!run.speed && (run.phase === "checked" || run.quiz)) advance(); }
     else if (e.key === "Backspace" && run.phase === "place" && history.length) { e.preventDefault(); marks = history.pop(); updateBoard(); updatePanel(); }
@@ -846,6 +854,8 @@
   document.addEventListener("visibilitychange", function () { if (document.hidden) A.metroStop(); else if (screen === "play" && run && run.speed && P.settings.metronome) A.metroStart(P.settings.metronome); });
 
   // test hook (used by the automated tests only)
+  window.TQApp = { P: function () { return P; }, save: save, go: go, esc: esc, toast: toast, openCard: openIntro, closeCard: closeIntro, keyIdx: keyIdx, keyLabel: function () { return keyDef().label; },
+    A: A, Board: Board, orientation: function () { return P.settings.orientation; }, introsOn: function () { return P.settings.intros !== false; }, screen: function () { return screen; } };
   window.__tq = { get run() { return run; }, get marks() { return marks; }, get screen() { return screen; }, tap: tap, check: check, start: start, go: go, P: function () { return P; }, jam: jam, openJam: openJam, jamTap: jamTap, peek: peek, get streak() { return streak; } };
 
   go("home");
